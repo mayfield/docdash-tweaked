@@ -4,6 +4,7 @@
 var doop = require('jsdoc/util/doop');
 var fs = require('jsdoc/fs');
 var helper = require('jsdoc/util/templateHelper');
+var jsDocName = require('jsdoc/name');
 var logger = require('jsdoc/util/logger');
 var path = require('jsdoc/path');
 var taffy = require('@jsdoc/salty').taffy;
@@ -11,7 +12,7 @@ var template = require('jsdoc/template');
 var util = require('util');
 
 var htmlsafe = helper.htmlsafe;
-var linkto = helper.linkto;
+var _linkto = helper.linkto;
 var resolveAuthorLinks = helper.resolveAuthorLinks;
 var scopeToPunc = helper.scopeToPunc;
 var hasOwnProp = Object.prototype.hasOwnProperty;
@@ -20,6 +21,18 @@ var data;
 var view;
 
 var outdir = path.normalize(env.opts.destination);
+
+
+function shorten(name) {
+    const doc = jsDocName.shorten(name);
+    return doc && doc.name || name;
+}
+
+
+function linkto(...args) {
+    const r = _linkto(...args);
+    return r;
+}
 
 function copyFile(source, target, cb) {
   var cbCalled = false;
@@ -137,7 +150,7 @@ function buildItemTypeStrings(item) {
 
     if (item && item.type && item.type.names) {
         item.type.names.forEach(function(name) {
-            types.push( linkto(name, htmlsafe(name)) );
+            types.push( linkto(name, htmlsafe(shorten(name))) );
         });
     }
 
@@ -359,16 +372,17 @@ function buildMemberNav(items, itemHeading, itemsSeen, linktoFn) {
                 }
                 itemsNav += linktoFn(item.longname, displayName.replace(/\b(module|event):/g, ''));
 
-                if (docdash.static && members.find(function (m) { return m.scope === 'static'; } )) {
+                if (docdash.static && members.find(m => m.scope === 'static')) {
                     itemsNav += "<ul class='members'>";
 
                     members.forEach(function (member) {
-                        if (!member.scope === 'static') return;
-                        itemsNav += "<li data-type='member'";
-                        if(docdash.collapse)
+                        if (member.scope !== 'static') return;
+                        itemsNav += "<li data-type='member' class='static'";
+                        if(docdash.collapse) {
                             itemsNav += " style='display: none;'";
+                        }
                         itemsNav += ">";
-                        itemsNav += linkto(member.longname, member.name);
+                        itemsNav += linkto(member.longname, shorten(member.name));
                         itemsNav += "</li>";
                     });
 
@@ -383,13 +397,16 @@ function buildMemberNav(items, itemHeading, itemsSeen, linktoFn) {
                         if (docdash.private === false && method.access === 'private') return;
 
                         var navItem = '';
-                        var navItemLink = linkto(method.longname, method.name);
 
                         navItem += "<li data-type='method'";
-                        if(docdash.collapse)
+                        if (method.scope === 'static') {
+                            navItem += " class='static'";
+                        }
+                        if(docdash.collapse) {
                             navItem += " style='display: none;'";
+                        }
                         navItem += ">";
-                        navItem += navItemLink;
+                        navItem += linkto(method.longname, shorten(method.name));
                         navItem += "</li>";
 
                         itemsNav += navItem;
@@ -462,7 +479,7 @@ function buildNav(members) {
     
             members.globals.forEach(function(g) {
                 if ( (docdash.typedefs || g.kind !== 'typedef') && !hasOwnProp.call(seen, g.longname) ) {
-                    globalNav += '<li>' + linkto(g.longname, g.name) + '</li>';
+                    globalNav += '<li>' + linkto(g.longname, shorten(g.name)) + '</li>';
                 }
                 seen[g.longname] = true;
             });

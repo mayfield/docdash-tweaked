@@ -157,8 +157,13 @@
     <?js
         var methods = self.find({kind: 'function', memberof: isGlobalPage ? {isUndefined: true} : doc.longname});
         if (methods && methods.length && methods.forEach) {
+            const isModule = self.find({longname: doc.longname}).every(x => x.kind === 'module');
     ?>
-        <h3 class="subsection-title">Methods</h3>
+        <?js if (isModule) { ?>
+            <h3 class="subsection-title">Functions</h3>
+        <?js } else { ?>
+            <h3 class="subsection-title">Methods</h3>
+        <?js } ?>
 
         <?js methods.forEach(function(m) { ?>
             <?js= self.partial('method.tmpl', m) ?>
