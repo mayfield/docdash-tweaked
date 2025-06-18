@@ -29,8 +29,11 @@ function shorten(name) {
 }
 
 
-function linkto(...args) {
-    const r = _linkto(...args);
+function linkto(longname, ...args) {
+    const r = _linkto(longname, ...args);
+    if (r && r.match && !r.match(/ href=/)) {
+        console.error("Link not found for:", longname, ...args);
+    }
     return r;
 }
 
