@@ -3,6 +3,21 @@ var data = obj;
 var self = this;
 ?>
 
+<?js if (data.augments && data.alias && data.alias.indexOf('module:') === 0) { ?>
+    <h5 class="h5-extends">Extends:</h5>
+    <?js= self.partial('augments.tmpl', data) ?>
+<?js } ?>
+
+
+<?js if (kind === 'event' && data.type && data.type.names) {?>
+    <h5 class="h5-types">Type:</h5>
+    <ul>
+        <li>
+            <?js= self.partial('type.tmpl', data.type.names) ?>
+        </li>
+    </ul>
+<?js } ?>
+
 <?js if (data.kind !== 'module' && !data.hideconstructor) { ?>
     <?js if (data.kind === 'class' && data.classdesc) { ?>
     <h2>Constructor</h2>
@@ -25,21 +40,9 @@ var self = this;
     <?js } ?>
 <?js } ?>
 
+
+
 <?js= this.partial('details.tmpl', data) ?>
-
-<?js if (data.augments && data.alias && data.alias.indexOf('module:') === 0) { ?>
-    <h5 class="h5-extends">Extends:</h5>
-    <?js= self.partial('augments.tmpl', data) ?>
-<?js } ?>
-
-<?js if (kind === 'event' && data.type && data.type.names) {?>
-    <h5 class="h5-types">Type:</h5>
-    <ul>
-        <li>
-            <?js= self.partial('type.tmpl', data.type.names) ?>
-        </li>
-    </ul>
-<?js } ?>
 
 <?js if (data['this']) { ?>
     <h5 class="h5-this">This:</h5>
@@ -64,21 +67,21 @@ var self = this;
 <?js } ?>
 
 <?js if (data.fires && fires.length) { ?>
-<h5 class="h5-fires">Fires:</h5>
+<h5 class="h5-fires">Emits:</h5>
 <ul><?js fires.forEach(function(f) { ?>
-    <li><?js= self.linkto(f) ?></li>
+    <li><?js= self.linkto(f, f.replace(/^event:/, '')) ?></li>
 <?js }); ?></ul>
 <?js } ?>
 
 <?js if (data.listens && listens.length) { ?>
-<h5 class="h5-listens">Listens to Events:</h5>
+<h5 class="h5-listens">Listens to:</h5>
 <ul><?js listens.forEach(function(f) { ?>
     <li><?js= self.linkto(f) ?></li>
 <?js }); ?></ul>
 <?js } ?>
 
 <?js if (data.listeners && listeners.length) { ?>
-<h5 class="h5-rlistenerseturns">Listeners of This Event:</h5>
+<h5 class="h5-rlistenerseturns">Listeners:</h5>
 <ul><?js listeners.forEach(function(f) { ?>
     <li><?js= self.linkto(f) ?></li>
 <?js }); ?></ul>

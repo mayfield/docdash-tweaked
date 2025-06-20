@@ -32,7 +32,7 @@ function shorten(name) {
 function linkto(longname, ...args) {
     const r = _linkto(longname, ...args);
     if (r && r.match && !r.match(/ href=/)) {
-        console.error("Link not found for:", longname, ...args);
+        console.warn("Link not found for:", longname, ...args);
     }
     return r;
 }
@@ -395,25 +395,49 @@ function buildMemberNav(items, itemHeading, itemsSeen, linktoFn) {
                 if (methods.length) {
                     itemsNav += "<ul class='methods'>";
 
-                    methods.forEach(function (method) {
-                        if (docdash.static === false && method.scope === 'static') return;
-                        if (docdash.private === false && method.access === 'private') return;
+                    const items = [];
 
-                        var navItem = '';
-
-                        navItem += "<li data-type='method'";
+                    for (const method of methods) {
+                        if (docdash.static === false && method.scope === 'static') continue;
+                        if (docdash.private === false && method.access === 'private') continue;
+                        const classes = [];
                         if (method.scope === 'static') {
-                            navItem += " class='static'";
+                            classes.push('static');
                         }
-                        if(docdash.collapse) {
-                            navItem += " style='display: none;'";
+                        if (method.inherited) {
+                            classes.push('inherited');
                         }
-                        navItem += ">";
-                        navItem += linkto(method.longname, shorten(method.name));
-                        navItem += "</li>";
+                        if (method.overrides) {
+                            classes.push('overrides');
+                        }
 
-                        itemsNav += navItem;
+                        let html = `<li data-type="method" class="${classes.join(' ')}"`;
+                        if(docdash.collapse) {
+                            html += ' style="display: none;"';
+                        }
+                        const name = shorten(method.name);
+                        html += `>${linkto(method.longname, name)}</li>`;
+                        items.push({classes, name, html});
+                    }
+
+                    items.sort((a, b) => {
+                        const aReversed = Array.from(a.name).toReversed().join('');
+                        const bReversed = Array.from(b.name).toReversed().join('');
+                        return aReversed === bReversed ? 0 : aReversed < bReversed ? -1 : 1;
                     });
+                    items.sort((a, b) => {
+                        const aImplements = !a.classes.includes('inherited') || a.classes.includes('overrides');
+                        const bImplements = !b.classes.includes('inherited') || b.classes.includes('overrides');
+                        if (aImplements && !bImplements) {
+                            return -1;
+                        } else if (bImplements && !aImplements) {
+                            return 1;
+                        } else {
+                            return 0;
+                        }
+                    });
+
+                    itemsNav += items.map(x => x.html).join('\n');
 
                     itemsNav += "</ul>";
                 }
@@ -749,6 +773,7 @@ exports.publish = function(taffyData, opts, tutorials) {
     // add template helpers
     view.find = find;
     view.linkto = linkto;
+    view.shorten = shorten;
     view.resolveAuthorLinks = resolveAuthorLinks;
     view.tutoriallink = tutoriallink;
     view.htmlsafe = htmlsafe;

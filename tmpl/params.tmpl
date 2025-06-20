@@ -59,74 +59,75 @@
 ?>
 
 <table class="params">
+    <?js var self = this; ?>
+    <?js let colCount = 2; ?>
     <thead>
-    <tr>
-        <?js if (params.hasName) {?>
-        <th>Name</th>
-        <?js } ?>
-
-        <th>Type</th>
-
-        <?js if (params.hasAttributes) {?>
-        <th>Attributes</th>
-        <?js } ?>
-
-        <?js if (params.hasDefault) {?>
-        <th>Default</th>
-        <?js } ?>
-
-        <th class="last">Description</th>
-    </tr>
+        <tr>
+            <?js if (params.hasName) {?>
+                <?js colCount++; ?>
+                <th class="name">Name</th>
+            <?js } ?>
+            <th class="type">Type</th>
+            <?js if (params.hasAttributes) {?>
+                <?js colCount++; ?>
+                <th class="attributes"></th>
+            <?js } ?>
+            <?js if (params.hasDefault) {?>
+                <?js colCount++; ?>
+                <th class="default">Default</th>
+            <?js } ?>
+            <th class="description last">Description</th>
+        </tr>
     </thead>
 
     <tbody>
-    <?js
-        var self = this;
-        params.forEach(function(param) {
-            if (!param) { return; }
-    ?>
-
-        <tr>
-            <?js if (params.hasName) {?>
-                <td class="name"><code><?js= param.name ?></code></td>
-            <?js } ?>
-
-            <td class="type">
-            <?js if (param.type && param.type.names) {?>
-                <?js= self.partial('type.tmpl', param.type.names) ?>
-            <?js } ?>
-            </td>
-
-            <?js if (params.hasAttributes) {?>
-                <td class="attributes">
-                <?js if (param.optional) { ?>
-                    &lt;optional><br>
+        <?js params.filter(x => x).forEach(function(param) { ?>
+            <tr>
+                <?js if (params.hasName) {?>
+                    <td class="name"><code><?js= param.name ?></code></td>
                 <?js } ?>
 
-                <?js if (param.nullable) { ?>
-                    &lt;nullable><br>
-                <?js } ?>
-
-                <?js if (param.variable) { ?>
-                    &lt;repeatable><br>
-                <?js } ?>
+                <td class="type">
+                    <?js if (param.type && param.type.names) {?>
+                        <?js= self.partial('type.tmpl', param.type.names) ?>
+                    <?js } ?>
                 </td>
-            <?js } ?>
 
-            <?js if (params.hasDefault) {?>
-                <td class="default">
-                <?js if (typeof param.defaultvalue !== 'undefined') { ?>
-                    <code><?js= self.htmlsafe(param.defaultvalue) ?></code>
+                <?js if (params.hasAttributes) {?>
+                    <td class="attributes">
+                        <?js if (param.optional) { ?>
+                            &lt;optional&gt;
+                        <?js } ?>
+                        <?js if (param.nullable) { ?>
+                            &lt;nullable&gt;
+                        <?js } ?>
+                        <?js if (param.variable) { ?>
+                            &lt;repeatable&gt;
+                        <?js } ?>
+                    </td>
                 <?js } ?>
-                </td>
-            <?js } ?>
 
-            <td class="description last"><?js= param.description ?><?js if (param.subparams) { ?>
-                <h6>Properties</h6>
-                <?js= self.partial('params.tmpl', param.subparams) ?>
+                <?js if (params.hasDefault) {?>
+                    <td class="default">
+                        <?js if (typeof param.defaultvalue !== 'undefined') { ?>
+                            <code><?js= self.htmlsafe(param.defaultvalue) ?></code>
+                        <?js } ?>
+                    </td>
+                <?js } ?>
+
+                <td class="description last">
+                    <?js= param.description ?>
+                </td>
+            </tr>
+            <?js if (param.subparams) { ?>
+                <tr>
+                    <td></td>
+                    <td colspan="<?js= colCount - 1 ?>">
+                        <h6>Properties</h6>
+                        <?js= self.partial('params.tmpl', param.subparams) ?>
+                    </td>
+                </tr>
             <?js } ?></td>
-        </tr>
-
-    <?js }); ?>
+        <?js }); ?>
     </tbody>
 </table>
